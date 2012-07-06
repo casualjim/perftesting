@@ -15,7 +15,7 @@ object PlainNetty extends App {
   server.setOption("soLinger", 0)
   server.setOption("reuseAddress", true)
   server.setOption("child.tcpNoDelay", true)
-  server.setOption("child.keepAlive", true)
+//  server.setOption("child.keepAlive", true)
 
   server.setPipelineFactory(new ChannelPipelineFactory {
     def getPipeline: ChannelPipeline = {
