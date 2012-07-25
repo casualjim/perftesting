@@ -13,12 +13,13 @@ object JettyMain {
 
     server setGracefulShutdown 5000
     server setSendServerVersion false
-    server setSendDateHeader true
+    server setSendDateHeader false
     server setStopAtShutdown true
 
     val connector = new SelectChannelConnector
-    connector setPort 8080
-    connector setMaxIdleTime 90000
+    connector setPort 8083
+    connector.setReuseAddress(true)
+    connector.setSoLingerTime(0)
     server addConnector connector
 
     val webapp = "src/main/webapp"

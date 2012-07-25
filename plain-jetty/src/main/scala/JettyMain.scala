@@ -21,7 +21,6 @@ object JettyMain {
     connector setPort 8083
     connector.setReuseAddress(true)
     connector.setSoLingerTime(0)
-    connector setMaxIdleTime 90000
     server addConnector connector
 
     val webapp = "src/main/webapp"
