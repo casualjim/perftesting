@@ -17,6 +17,17 @@ object PlainNetty extends App {
   server.setOption("child.tcpNoDelay", true)
 //  server.setOption("child.keepAlive", true)
 
+  def responseFor(r: HttpRequest, keepAlive: Boolean) = {
+    val resp = new DefaultHttpResponse(r.getProtocolVersion, HttpResponseStatus.OK)
+    val content = ChannelBuffers.copiedBuffer("Hello, world!", Codec.UTF8)
+    resp.setHeader("Content-Length", content.readableBytes())
+    resp.setHeader("Content-Type", "text/plain;charset=utf-8")
+    if (keepAlive && r.getProtocolVersion == HttpVersion.HTTP_1_0)
+      resp.setHeader(Names.CONNECTION, Values.KEEP_ALIVE)
+    resp.setContent(content)
+    resp
+  }
+
   server.setPipelineFactory(new ChannelPipelineFactory {
     def getPipeline: ChannelPipeline = {
       val pipe = Channels.pipeline
@@ -29,15 +40,7 @@ object PlainNetty extends App {
           e.getMessage match {
             case r: HttpRequest => {
               val keepAlive = HttpHeaders.isKeepAlive(r)
-              val resp = new DefaultHttpResponse(r.getProtocolVersion, HttpResponseStatus.OK)
-              val content = ChannelBuffers.copiedBuffer("Hello, world!", Codec.UTF8)
-              resp.setHeader("Content-Length", content.readableBytes())
-              resp.setHeader("Content-Type", "text/plain;charset=utf-8")
-              if (keepAlive && r.getProtocolVersion == HttpVersion.HTTP_1_0)
-                resp.setHeader(Names.CONNECTION, Values.KEEP_ALIVE)
-              resp.setContent(content)
-
-              val fut = ctx.getChannel.write(resp)
+              val fut = ctx.getChannel.write(responseFor(r, keepAlive))
               if (!keepAlive) fut.addListener(ChannelFutureListener.CLOSE)
             }
             case _ => ctx.sendUpstream(e)
